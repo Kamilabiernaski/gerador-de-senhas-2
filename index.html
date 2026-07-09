@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Password Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #334155;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .output-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #password {
+            font-size: 1.1rem;
+            color: #0f172a;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .btn-copy {
+            background: none;
+            border: none;
+            color: #6366f1;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+        }
+
+        .btn-copy:hover {
+            color: #4f46e5;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        input[type="number"] {
+            border: 1px solid #cbd5e1;
+            padding: 0.4rem;
+            border-radius: 8px;
+            width: 55px;
+            text-align: center;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #6366f1;
+            cursor: pointer;
+        }
+
+        .btn-generate {
+            width: 100%;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-generate:hover {
+            background-color: #4f46e5;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Gerador de Senhas</h1>
+        
+        <div class="output-box">
+            <span id="password">Gerar...</span>
+            <button class="btn-copy" id="copyBtn">Copiar</button>
+        </div>
+
+        <div class="settings">
+            <div class="row">
+                <label>Caracteres</label>
+                <input type="number" id="length" min="6" max="32" value="14">
+            </div>
+            <div class="row">
+                <label>Letras maiúsculas</label>
+                <input type="checkbox" id="uppercase" checked>
+            </div>
+            <div class="row">
+                <label>Letras minúsculas</label>
+                <input type="checkbox" id="lowercase" checked>
+            </div>
+            <div class="row">
+                <label>Números</label>
+                <input type="checkbox" id="numbers" checked>
+            </div>
+            <div class="row">
+                <label>Símbolos</label>
+                <input type="checkbox" id="symbols" checked>
+            </div>
+        </div>
+
+        <button class="btn-generate" id="generateBtn">Criar senha forte</button>
+    </div>
+
+    <script>
+        const passwordEl = document.getElementById('password');
+        const lengthEl = document.getElementById('length');
+        const uppercaseEl = document.getElementById('uppercase');
+        const lowercaseEl = document.getElementById('lowercase');
+        const numbersEl = document.getElementById('numbers');
+        const symbolsEl = document.getElementById('symbols');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+
+        const randomFunc = {
+            lower: () => String.fromCharCode(Math.floor(Math.random() * 26) + 97),
+            upper: () => String.fromCharCode(Math.floor(Math.random() * 26) + 65),
+            number: () => String.fromCharCode(Math.floor(Math.random() * 10) + 48),
+            symbol: () => '!@#$%^&*()_+='[Math.floor(Math.random() * 12)]
+        };
+
+        generateBtn.addEventListener('click', () => {
+            const length = +lengthEl.value;
+            const hasUpper = uppercaseEl.checked;
+            const hasLower = lowercaseEl.checked;
+            const hasNumber = numbersEl.checked;
+            const hasSymbol = symbolsEl.checked;
+            passwordEl.innerText = generatePassword(hasLower, hasUpper, hasNumber, hasSymbol, length);
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const password = passwordEl.innerText;
+            if (password === 'Gerar...' || password === 'Selecione uma opção') return;
+            navigator.clipboard.writeText(password);
+            alert('Copiado!');
+        });
+
+        function generatePassword(lower, upper, number, symbol, length) {
+            let generatedPassword = '';
+            const typesCount = lower + upper + number + symbol;
+            const typesArr = [{ lower }, { upper }, { number }, { symbol }].filter(item => Object.values(item)[0]);
+            if (typesCount === 0) return 'Selecione uma opção';
+            for (let i = 0; i < length; i += typesCount) {
+                typesArr.forEach(type => {
+                    const funcName = Object.keys(type)[0];
+                    generatedPassword += randomFunc[funcName]();
+                });
+            }
+            return generatedPassword.slice(0, length).split('').sort(() => Math.random() - 0.5).join('');
+        }
+    </script>
+</body>
+</html>
