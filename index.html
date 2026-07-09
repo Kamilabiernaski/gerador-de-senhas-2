@@ -47,7 +47,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         #password {
@@ -70,6 +70,38 @@
         .btn-copy:hover {
             color: #4f46e5;
         }
+
+        /* --- Estilos do Medidor Minimal --- */
+        .strength-container {
+            margin-bottom: 1.5rem;
+            padding: 0 0.2rem;
+        }
+
+        .strength-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 0.4rem;
+        }
+
+        .strength-bar-bg {
+            background-color: #f1f5f9;
+            height: 6px;
+            width: 100%;
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #ef4444; /* Vermelho padrão inicial */
+            border-radius: 100px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        /* ---------------------------------- */
 
         .row {
             display: flex;
@@ -128,6 +160,16 @@
             <button class="btn-copy" id="copyBtn">Copiar</button>
         </div>
 
+        <div class="strength-container">
+            <div class="strength-label">
+                <span>Força da senha</span>
+                <span id="strengthText">Aguardando...</span>
+            </div>
+            <div class="strength-bar-bg">
+                <div id="strengthBar" class="strength-bar"></div>
+            </div>
+        </div>
+
         <div class="settings">
             <div class="row">
                 <label>Caracteres</label>
@@ -163,6 +205,8 @@
         const symbolsEl = document.getElementById('symbols');
         const generateBtn = document.getElementById('generateBtn');
         const copyBtn = document.getElementById('copyBtn');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
 
         const randomFunc = {
             lower: () => String.fromCharCode(Math.floor(Math.random() * 26) + 97),
@@ -177,7 +221,15 @@
             const hasLower = lowercaseEl.checked;
             const hasNumber = numbersEl.checked;
             const hasSymbol = symbolsEl.checked;
-            passwordEl.innerText = generatePassword(hasLower, hasUpper, hasNumber, hasSymbol, length);
+            
+            const senha = generatePassword(hasLower, hasUpper, hasNumber, hasSymbol, length);
+            passwordEl.innerText = senha;
+
+            if (senha !== 'Selecione uma opção') {
+                avaliarForcaSenha(hasLower, hasUpper, hasNumber, hasSymbol, length);
+            } else {
+                resetarMedidor();
+            }
         });
 
         copyBtn.addEventListener('click', () => {
@@ -199,6 +251,39 @@
                 });
             }
             return generatedPassword.slice(0, length).split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        function avaliarForcaSenha(lower, upper, number, symbol, length) {
+            const tiposAtivos = lower + upper + number + symbol;
+            let pontos = 0;
+
+            if (tiposAtivos >= 2) pontos++;
+            if (tiposAtivos >= 4) pontos++;
+            if (length >= 10) pontos++;
+            if (length >= 14) pontos++;
+
+            if (pontos <= 1 || length < 8) {
+                strengthBar.style.width = '33%';
+                strengthBar.style.backgroundColor = '#ef4444'; // Vermelho Soft
+                strengthText.innerText = 'Fraca';
+                strengthText.style.color = '#ef4444';
+            } else if (pontos === 2 || pontos === 3) {
+                strengthBar.style.width = '66%';
+                strengthBar.style.backgroundColor = '#eab308'; // Amarelo Soft
+                strengthText.innerText = 'Média';
+                strengthText.style.color = '#eab308';
+            } else {
+                strengthBar.style.width = '100%';
+                strengthBar.style.backgroundColor = '#22c55e'; // Verde Soft
+                strengthText.innerText = 'Forte';
+                strengthText.style.color = '#22c55e';
+            }
+        }
+
+        function resetarMedidor() {
+            strengthBar.style.width = '0%';
+            strengthText.innerText = 'Aguardando...';
+            strengthText.style.color = '#64748b';
         }
     </script>
 </body>
